@@ -43,10 +43,10 @@ Chat Completion
 - 🔗 将 Custom API Key 与 Base URL 绑定
 - 🔄 选择密钥时同时切换 Custom Endpoint
 - ➕ 添加新密钥时自动关联当前 URL
-- ✏️ 可以修改已有密钥对应的 Base URL
+- ✏️ 可以编辑连接的 Base URL 和 API Key
 - 🔑 同一个 URL 可以保存多把不同的 Key
 - 🗂️ 保留 SillyTavern 原生 Secrets 系统
-- 🛡️ 不读取或额外保存已经存储的 API Key
+- 🛡️ API Key 只保存在 SillyTavern Secrets，不会被扩展另行持久化
 - 🔌 不需要 Server Plugin
 - 📁 不创建、修改或删除 Connection Profiles
 
@@ -149,7 +149,7 @@ Backup Key
 
 Easy-API-Switcher 不会猜测它属于哪个 URL。
 
-你可以之后手动使用 **Set Base URL** 为它建立绑定。
+你可以之后手动使用 **编辑连接** 为它建立绑定。
 
 ## Connection Profiles
 
@@ -173,9 +173,13 @@ IndexedDB
 其他数据库
 ```
 
-也不要求开启 `allowKeysExposure`。
+Base URL 联动不要求开启 `allowKeysExposure`。如果 SillyTavern 的
+`config.yaml` 未开启该选项，管理器只显示原生掩码，并会拒绝复制掩码；
+开启后，SillyTavern 的 `/api/secrets/read` 会返回明文，管理器才会显示和复制真实 Key。
 
-已经保存的 API Key 不需要向扩展暴露明文。
+编辑已有连接时，如果输入了不同的 Key，扩展会通过 SillyTavern 原生
+Secrets 写入接口创建一条新的 active Secret，并保留旧 Secret。这是因为
+当前 SillyTavern 没有按 Secret ID 原位修改 Key 的接口。
 
 > Base URL 会作为 Secret 的可见 label 保存，因此包含用户名或密码的 URL 会被拒绝。
 
@@ -235,7 +239,7 @@ Easy-API-Switcher treats them as one connection pair.
 - Keep old Secrets when creating a new URL + Key pair
 - Allow multiple API keys for the same Base URL
 - Preserve SillyTavern's native Secrets system
-- Never require plaintext access to saved API keys
+- Display and copy plaintext keys only when SillyTavern explicitly exposes them
 - Leave other API providers untouched
 - Do not create, modify, or delete Connection Profiles
 - No Server Plugin required
@@ -270,8 +274,14 @@ a Base URL manually.
 API keys remain exclusively in SillyTavern's native Secrets system.
 
 Easy-API-Switcher does not store them in extension settings, localStorage,
-IndexedDB, logs, or another database, and does not require
-`allowKeysExposure`.
+IndexedDB, logs, or another database. Base URL switching works without
+`allowKeysExposure`; plaintext display and copying are available only when that
+SillyTavern server option is enabled. Otherwise the manager shows the native
+mask and refuses to copy it.
+
+SillyTavern currently has no endpoint for replacing a Secret's value in place.
+Editing a connection with a different Key therefore creates a new active native
+Secret and keeps the old one.
 
 ## Compatibility
 

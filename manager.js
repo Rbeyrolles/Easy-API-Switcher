@@ -1,5 +1,4 @@
 import { BindingTransactionError } from './binding-service.js';
-import { CUSTOM_SECRET_KEY } from './secret-client.js';
 import { cleanEndpoint, isBindableEndpoint } from './url-utils.js';
 
 /** @param {string} tag @param {string} [className] @param {string} [text] */
@@ -27,7 +26,6 @@ export class CustomSecretManager {
         this.popup = null;
         this.root = null;
         this.list = null;
-        this.empty = null;
         this.busy = false;
     }
 
@@ -51,7 +49,6 @@ export class CustomSecretManager {
                 this.popup = null;
                 this.root = null;
                 this.list = null;
-                this.empty = null;
             },
         });
 
@@ -65,44 +62,35 @@ export class CustomSecretManager {
         const header = element('div', 'easyswitch-manager-header');
         const titleRow = element('div', 'easyswitch-title-row');
         const titleBlock = element('div', 'easyswitch-title-block');
-        titleBlock.append(
-            element('h3', '', this.tr('Custom API connections')),
-            element('div', 'easyswitch-key-name', `${this.tr('Native Secret key')}: ${CUSTOM_SECRET_KEY}`),
-        );
+        titleBlock.append(element('h3', '', this.tr('Custom API connections')));
 
         const add = this.#actionButton('add', 'fa-plus', this.tr('Add connection'));
         add.classList.add('menu_button_icon');
         titleRow.append(titleBlock, add);
 
-        const hint = element('div', 'info-block hint easyswitch-hint');
-        hint.textContent = this.tr('For Custom APIs, a Secret label is its Base URL. API keys remain in SillyTavern Secrets and are never revealed to this extension.');
-        header.append(titleRow, hint);
+        header.append(titleRow);
 
         this.list = element('div', 'easyswitch-secret-list secretKeyManagerList');
-        this.empty = element('div', 'easyswitch-empty secretKeyManagerListEmpty', this.tr('No Custom secrets saved.'));
-        root.append(header, element('hr'), this.list, this.empty);
+        root.append(header, element('hr'), this.list);
         root.addEventListener('click', event => void this.#handleAction(event));
         return root;
     }
 
     async refresh() {
-        if (!this.list || !this.empty) return;
+        if (!this.list) return;
         this.#setBusy(true);
         try {
             const secrets = await this.secrets.list();
             this.list.replaceChildren(...secrets.map(secret => this.#renderSecret(secret)));
-            this.empty.hidden = secrets.length > 0;
         } catch (error) {
-            this.list.replaceChildren();
-            this.empty.hidden = false;
-            this.empty.textContent = this.tr('Could not load Custom secrets. Close this window and try again.');
+            this.list.replaceChildren(element('div', 'easyswitch-load-error', this.tr('Could not load Custom secrets. Close this window and try again.')));
             this.reportError(error);
         } finally {
             this.#setBusy(false);
         }
     }
 
-    /** @param {{id: string, label: string, active: boolean}} secret */
+    /** @param {{id: string, label: string, active: boolean, value: string, exposed: boolean}} secret */
     #renderSecret(secret) {
         const item = element('div', `easyswitch-secret-item secretKeyManagerItem${secret.active ? ' active' : ''}`);
         item.dataset.id = secret.id;
@@ -124,16 +112,17 @@ export class CustomSecretManager {
             info.append(legacy);
         }
 
-        const idRow = element('div', 'easyswitch-id-row secretKeyManagerItemSubtitle');
-        idRow.append(element('strong', '', 'ID:'), element('code', '', secret.id));
-        info.append(idRow);
+        const keyRow = element('div', 'easyswitch-key-row secretKeyManagerItemSubtitle');
+        const displayedKey = secret.exposed && secret.value === '' ? this.tr('[Empty]') : secret.value;
+        keyRow.append(element('strong', '', `${this.tr('Key')}:`), element('code', '', displayedKey));
+        info.append(keyRow);
 
         const actions = element('div', 'easyswitch-actions secretKeyManagerItemActions');
         const select = this.#actionButton('select', 'fa-check', this.tr('Select connection'), secret.id);
         select.disabled = secret.active;
         select.classList.toggle('disabled', secret.active);
-        const copy = this.#actionButton('copy-id', 'fa-copy', this.tr('Copy Secret ID'), secret.id);
-        const edit = this.#actionButton('edit', 'fa-pen-to-square', this.tr('Set Base URL'), secret.id);
+        const copy = this.#actionButton('copy-key', 'fa-copy', this.tr('Copy API Key'), secret.id);
+        const edit = this.#actionButton('edit', 'fa-pen-to-square', this.tr('Edit connection'), secret.id);
         const remove = this.#actionButton('delete', 'fa-trash', this.tr('Delete Secret'), secret.id);
         actions.append(select, copy, edit, remove);
         item.append(info, actions);
@@ -165,7 +154,7 @@ export class CustomSecretManager {
         const id = button.dataset.id ?? '';
         if (action === 'add') await this.#add();
         if (action === 'select') await this.#select(id);
-        if (action === 'copy-id') await this.#copyId(id);
+        if (action === 'copy-key') await this.#copyKey(id);
         if (action === 'edit') await this.#edit(id);
         if (action === 'delete') await this.#delete(id);
     }
@@ -176,7 +165,6 @@ export class CustomSecretManager {
         endpoint.value = SillyTavern.getContext().chatCompletionSettings?.custom_url ?? '';
         const key = this.#field(wrapper, this.tr('API Key (may be empty for a keyless endpoint)'), 'password', '');
         key.autocomplete = 'new-password';
-        wrapper.append(element('small', 'easyswitch-security-note', this.tr('The entered key is sent directly to SillyTavern Secrets. It is not copied into extension settings, browser storage, or logs.')));
 
         const success = await this.#validatedPopup({
             content: wrapper,
@@ -209,7 +197,10 @@ export class CustomSecretManager {
         }
 
         if (!isBindableEndpoint(target.label)) {
-            const edited = await this.#edit(id);
+            // Selection only needs the missing Base URL. Allowing a Key
+            // replacement here would create a new active Secret and then the
+            // remaining selection flow would incorrectly rotate back to `id`.
+            const edited = await this.#edit(id, { allowKeyChange: false });
             if (!edited) return;
             secrets = await this.secrets.list();
             target = secrets.find(secret => secret.id === id);
@@ -229,8 +220,12 @@ export class CustomSecretManager {
         }
     }
 
-    /** @param {string} id @returns {Promise<boolean>} */
-    async #edit(id) {
+    /**
+     * @param {string} id
+     * @param {{allowKeyChange?: boolean}} [options]
+     * @returns {Promise<boolean>}
+     */
+    async #edit(id, { allowKeyChange = true } = {}) {
         const secrets = await this.secrets.list();
         const target = secrets.find(secret => secret.id === id);
         if (!target) {
@@ -241,15 +236,48 @@ export class CustomSecretManager {
         const wrapper = element('div', 'easyswitch-form');
         const endpoint = this.#field(wrapper, this.tr('Base URL'), 'url', 'https://api.example.com/v1');
         endpoint.value = isBindableEndpoint(target.label) ? target.label : '';
+        const key = allowKeyChange
+            ? this.#field(wrapper, this.tr('API Key'), 'text', '')
+            : null;
+        let originalKey = null;
+        if (key) {
+            key.autocomplete = 'off';
+        }
+        if (key && target.exposed) {
+            key.value = target.value;
+            originalKey = target.value;
+        } else if (key) {
+            key.placeholder = this.tr('Enter a new Key, or leave blank to keep the current Secret');
+        }
         if (!isBindableEndpoint(target.label) && target.label) {
             wrapper.append(element('small', 'easyswitch-legacy-label', `${this.tr('Legacy label')}: ${target.label}`));
         }
 
         const success = await this.#validatedPopup({
             content: wrapper,
-            okText: this.tr('Save Base URL'),
+            okText: this.tr('Save connection'),
             operation: async () => {
+                const hasNewKey = key && (originalKey === null
+                    ? key.value.length > 0
+                    : key.value !== originalKey);
+                if (hasNewKey) {
+                    if (!key.value) {
+                        const confirmed = await SillyTavern.getContext().Popup.show.confirm(
+                            this.tr('Create a keyless Secret?'),
+                            this.tr('No API Key was entered. The new Secret will contain an empty value.'),
+                        );
+                        if (!confirmed) return false;
+                    }
+                    const result = await this.binding.add({ endpoint: endpoint.value, value: key.value });
+                    key.value = '';
+                    originalKey = null;
+                    await this.onMutation('written', { activeEndpoint: cleanEndpoint(endpoint.value) });
+                    return Boolean(result.id);
+                }
+
                 const result = await this.binding.edit({ id, endpoint: endpoint.value });
+                if (key) key.value = '';
+                originalKey = null;
                 await this.onMutation('edited', result.active ? { activeEndpoint: cleanEndpoint(endpoint.value) } : {});
                 return true;
             },
@@ -267,7 +295,7 @@ export class CustomSecretManager {
         const label = isBindableEndpoint(target.label) ? target.label : this.tr('Unbound Custom Secret');
         const confirmed = await SillyTavern.getContext().Popup.show.confirm(
             this.tr('Delete Custom Secret'),
-            `${label}\nID: ${target.id}\n\n${this.tr('This action cannot be undone.')}`,
+            `${label}\n\n${this.tr('This action cannot be undone.')}`,
         );
         if (!confirmed) return;
 
@@ -291,12 +319,20 @@ export class CustomSecretManager {
     }
 
     /** @param {string} id */
-    async #copyId(id) {
+    async #copyKey(id) {
         try {
-            await navigator.clipboard.writeText(id);
-            toastr.info(this.tr('Secret ID copied.'));
+            const secret = (await this.secrets.list()).find(item => item.id === id);
+            if (!secret) {
+                throw new Error('Secret not found');
+            }
+            if (!secret.exposed) {
+                toastr.error(this.tr('SillyTavern is hiding API keys. Enable allowKeysExposure in config.yaml to copy the plaintext Key.'));
+                return;
+            }
+            await navigator.clipboard.writeText(secret.value);
+            toastr.info(this.tr('API Key copied.'));
         } catch {
-            toastr.error(this.tr('Could not copy the Secret ID.'));
+            toastr.error(this.tr('Could not copy the API Key.'));
         }
     }
 

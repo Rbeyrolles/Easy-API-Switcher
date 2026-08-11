@@ -26,9 +26,15 @@ active ID and emits `SECRET_ROTATED`; `renameSecret()` changes only `label`.
 
 `SecretManager.writeSecret()` deactivates the existing entries and appends one
 new active entry. The complete secrets file is written atomically. The `/read`
-endpoint returns IDs, labels, active flags, and masked values; it does not
-require `allowKeysExposure`. `/find` and `/view` can expose values and are not
-used by EasySwitch.
+endpoint returns IDs, labels, active flags, and values masked according to the
+server's `allowKeysExposure` setting. EasySwitch checks `/api/secrets/settings`
+before deciding whether those values may be rendered or copied. `/find` and
+`/view` are not used.
+
+Core exposes no operation for replacing the value of an existing Secret ID.
+Consequently, editing a connection with a different Key uses `/write`: it
+creates a new active Secret with the chosen Base URL and preserves the old
+Secret. A URL-only edit still renames the existing Secret in place.
 
 ### Custom Chat Completion
 
@@ -78,6 +84,12 @@ uses `SillyTavern.getContext().Popup` and native CSS vocabulary, but owns its DO
 so it does not patch a core Handlebars template or monkey-patch a private
 function.
 
+Key visibility follows SillyTavern's server policy. With exposure disabled, the
+manager renders the native mask, does not copy it, and leaves the Key field
+blank when editing. With exposure enabled, `/read` supplies the plaintext for
+display, copy, and editing. The extension never writes returned values to
+extension settings, browser storage, or logs.
+
 The direct connect button is intercepted only when all of the following hold:
 
 - the click is trusted user input;
@@ -110,5 +122,5 @@ is not blindly rolled back because the first mutation may have succeeded; the
 popup remains open and tells the user to refresh.
 
 This is stronger than the native UI can currently provide without a core
-transaction endpoint or a Server Plugin, while preserving the requirement that
-keys never be exposed.
+transaction endpoint or a Server Plugin. Plaintext exposure remains controlled
+solely by SillyTavern's `allowKeysExposure` setting.

@@ -11,12 +11,11 @@ const productionFiles = [
     'compatibility.js',
 ];
 
-test('production code never uses key-exposure endpoints or browser persistence', async () => {
+test('production code avoids direct key lookup endpoints and browser persistence', async () => {
     for (const file of productionFiles) {
         const source = await readFile(new URL(`../${file}`, import.meta.url), 'utf8');
-        assert.doesNotMatch(source, /\/api\/secrets\/(?:find|view)/, `${file} must not request saved key values`);
+        assert.doesNotMatch(source, /\/api\/secrets\/(?:find|view)/, `${file} must not bypass the normal Secret read policy`);
         assert.doesNotMatch(source, /\b(?:localStorage|sessionStorage|indexedDB|extensionSettings)\b/, `${file} must not persist key material client-side`);
-        assert.doesNotMatch(source, /allowKeysExposure/, `${file} must not require key exposure`);
     }
 });
 
@@ -26,8 +25,8 @@ test('Connection Profile programmatic connects are explicitly excluded', async (
     assert.doesNotMatch(source, /SECRET_ROTATED[^\n]+(?:on|addEventListener)/);
 });
 
-test('saved masked values are discarded by the Secret client', async () => {
-    const source = await readFile(new URL('../secret-client.js', import.meta.url), 'utf8');
-    assert.match(source, /\.map\(secret\s*=>\s*\(\{[\s\S]*?id:[\s\S]*?label:[\s\S]*?active:/);
-    assert.doesNotMatch(source, /value:\s*secret\.value/);
+test('editing a different Key uses native new-Secret semantics', async () => {
+    const source = await readFile(new URL('../manager.js', import.meta.url), 'utf8');
+    assert.match(source, /hasNewKey[\s\S]*?this\.binding\.add\(\{ endpoint: endpoint\.value, value: key\.value \}\)/);
+    assert.match(source, /#edit\(id, \{ allowKeyChange: false \}\)/);
 });

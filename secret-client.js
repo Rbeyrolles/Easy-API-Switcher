@@ -15,8 +15,8 @@ export class SecretClientError extends Error {
 
 /**
  * Minimal client for SillyTavern's existing Secrets endpoints.
- * It intentionally drops the masked `value` field returned by /read, so saved
- * API key material is never retained or rendered by the extension.
+ * `/read` follows SillyTavern's own allowKeysExposure policy: its value is
+ * masked by default and plaintext only when the server explicitly permits it.
  */
 export class SecretClient {
     /** @param {() => Record<string, string>} getHeaders */
@@ -24,8 +24,9 @@ export class SecretClient {
         this.getHeaders = getHeaders;
     }
 
-    /** @returns {Promise<Array<{id: string, label: string, active: boolean}>>} */
+    /** @returns {Promise<Array<{id: string, label: string, active: boolean, value: string, exposed: boolean}>>} */
     async list() {
+        const exposure = await this.#getExposureStatus();
         const response = await fetch('/api/secrets/read', {
             method: 'POST',
             headers: this.getHeaders({ omitContentType: true }),
@@ -47,7 +48,28 @@ export class SecretClient {
                 id: secret.id,
                 label: typeof secret.label === 'string' ? secret.label : '',
                 active: secret.active === true,
+                // If the settings check itself failed, do not risk treating a
+                // potentially plaintext response as safe to display.
+                value: exposure === null
+                    ? '**********'
+                    : (typeof secret.value === 'string' ? secret.value : ''),
+                exposed: exposure === true,
             }));
+    }
+
+    /** @returns {Promise<boolean|null>} */
+    async #getExposureStatus() {
+        try {
+            const response = await fetch('/api/secrets/settings', {
+                method: 'POST',
+                headers: this.getHeaders({ omitContentType: true }),
+            });
+            if (!response.ok) return null;
+            const settings = await response.json();
+            return settings?.allowKeysExposure === true;
+        } catch {
+            return null;
+        }
     }
 
     /**
@@ -129,7 +151,7 @@ export class SecretClient {
      * Read-back verification with short retries. A failed predicate is a
      * definite mismatch; repeated read failures are marked as uncertain.
      *
-     * @param {(secrets: Array<{id: string, label: string, active: boolean}>) => Promise<boolean>|boolean} predicate
+     * @param {(secrets: Array<{id: string, label: string, active: boolean, value: string, exposed: boolean}>) => Promise<boolean>|boolean} predicate
      * @param {string} message
      * @param {string} [mutationId]
      */

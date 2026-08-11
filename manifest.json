@@ -4,10 +4,10 @@
     "js": "index.js",
     "css": "style.css",
     "author": "SillyTavern EasySwitch contributors",
-    "version": "1.0.0",
-    "homePage": "https://github.com/Ribeyrolles/SillyTavern-EasySwitch",
+    "version": "1.1.1",
+    "homePage": "https://github.com/Rbeyrolles/Easy-API-Switcher",
     "auto_update": true,
-    "minimum_client_version": "1.18.0",
+    "minimum_client_version": "1.13.4",
     "i18n": {
         "zh-cn": "i18n/zh-cn.json",
         "zh-tw": "i18n/zh-tw.json"
