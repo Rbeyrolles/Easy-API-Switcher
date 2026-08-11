@@ -8,6 +8,7 @@ const productionFiles = [
     'binding-service.js',
     'secret-client.js',
     'endpoint-store.js',
+    'extension-settings.js',
     'compatibility.js',
 ];
 
@@ -15,7 +16,7 @@ test('production code avoids direct key lookup endpoints and browser persistence
     for (const file of productionFiles) {
         const source = await readFile(new URL(`../${file}`, import.meta.url), 'utf8');
         assert.doesNotMatch(source, /\/api\/secrets\/(?:find|view)/, `${file} must not bypass the normal Secret read policy`);
-        assert.doesNotMatch(source, /\b(?:localStorage|sessionStorage|indexedDB|extensionSettings)\b/, `${file} must not persist key material client-side`);
+        assert.doesNotMatch(source, /\b(?:localStorage|sessionStorage|indexedDB)\b/, `${file} must not persist key material in browser storage`);
     }
 });
 

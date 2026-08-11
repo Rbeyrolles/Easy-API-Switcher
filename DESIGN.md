@@ -100,6 +100,19 @@ After a successful binding transaction, the extension produces an untrusted
 programmatic click. That bypasses EasySwitch and runs the original handler with
 the key input already cleared, preventing duplicate Secret creation.
 
+### Extension Settings UI
+
+The optional `hideTestMessageButton` preference is stored under the unique
+`extensionSettings.easyApiSwitcher` namespace and persisted with the public
+`saveSettingsDebounced()` context API. The native-style drawer is rendered with
+`renderExtensionTemplateAsync()` and appended to `#extensions_settings2`, as
+recommended by the official UI Extension guide.
+
+Hiding is limited to adding EasySwitch's namespaced CSS class to the core
+`#test_api_button`. The extension does not remove the button, replace its click
+handler, or alter connection and chat behavior. No API key, Base URL, or Secret
+ID is stored in Extension Settings.
+
 ## Compatibility surface
 
 The context API does not expose Secret CRUD or a Secret-state refresh method.

@@ -47,6 +47,7 @@ Chat Completion
 - 🔑 同一个 URL 可以保存多把不同的 Key
 - 🗂️ 保留 SillyTavern 原生 Secrets 系统
 - 🛡️ API Key 只保存在 SillyTavern Secrets，不会被扩展另行持久化
+- ⚙️ 可在 Extension Settings 中隐藏原生 Test Message 按钮
 - 🔌 不需要 Server Plugin
 - 📁 不创建、修改或删除 Connection Profiles
 
@@ -127,6 +128,14 @@ Custom API Key
 
 新创建的 Secret 会自动和当时填写的 URL 建立关联。
 
+## 扩展设置
+
+进入 SillyTavern 的 **Extensions** 面板，展开 **Easy API Switcher**：
+
+- **隐藏测试按钮**：隐藏 API Connections 中原生的 **Test Message** 按钮。
+
+这个选项只改变按钮的可见性，不修改 API 配置、连接流程或聊天功能。
+
 ## 已有的旧密钥
 
 安装 Easy-API-Switcher **不会修改或删除已有 Custom Secrets**。
@@ -172,6 +181,9 @@ IndexedDB
 日志
 其他数据库
 ```
+
+Extension Settings 中只保存 `hideTestMessageButton` 布尔值，不保存任何
+API Key、Base URL 或 Secret ID。
 
 Base URL 联动不要求开启 `allowKeysExposure`。如果 SillyTavern 的
 `config.yaml` 未开启该选项，管理器只显示原生掩码，并会拒绝复制掩码；
@@ -240,6 +252,7 @@ Easy-API-Switcher treats them as one connection pair.
 - Allow multiple API keys for the same Base URL
 - Preserve SillyTavern's native Secrets system
 - Display and copy plaintext keys only when SillyTavern explicitly exposes them
+- Optionally hide the native Test Message button from Extension Settings
 - Leave other API providers untouched
 - Do not create, modify, or delete Connection Profiles
 - No Server Plugin required
@@ -261,6 +274,13 @@ https://github.com/Rbeyrolles/Easy-API-Switcher
 
 Then reload SillyTavern.
 
+## Extension Settings
+
+Open SillyTavern's **Extensions** panel and expand **Easy API Switcher**.
+Enable **Hide Test Message button** to hide the native button in API
+Connections. This changes visibility only; API connections and chat behavior
+are unaffected.
+
 ## Existing Secrets
 
 Existing Custom Secrets are never automatically deleted or migrated.
@@ -272,6 +292,9 @@ a Base URL manually.
 ## Security
 
 API keys remain exclusively in SillyTavern's native Secrets system.
+
+The only Easy-API-Switcher preference persisted in Extension Settings is the
+`hideTestMessageButton` boolean. It contains no API key, Base URL, or Secret ID.
 
 Easy-API-Switcher does not store them in extension settings, localStorage,
 IndexedDB, logs, or another database. Base URL switching works without

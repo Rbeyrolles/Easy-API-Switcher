@@ -1,6 +1,7 @@
 import { BindingService, BindingTransactionError } from './binding-service.js';
 import { emitSecretEvent, refreshCoreSecretState, triggerNativeApiRefresh, triggerNativeCustomConnect } from './compatibility.js';
 import { EndpointStore } from './endpoint-store.js';
+import { initializeExtensionSettings } from './extension-settings.js';
 import { CustomSecretManager } from './manager.js';
 import { SecretClient } from './secret-client.js';
 import { cleanEndpoint, endpointsEqual } from './url-utils.js';
@@ -138,7 +139,7 @@ function interceptClicks(event) {
     }
 }
 
-function initialize() {
+async function initialize() {
     if (initialized) return;
     initialized = true;
 
@@ -163,6 +164,13 @@ function initialize() {
     ];
     for (const eventType of syncEvents) {
         current.eventSource.on(eventType, () => queueMicrotask(rememberCurrentEndpoint));
+    }
+
+    try {
+        await initializeExtensionSettings();
+    } catch (error) {
+        const safeMessage = error instanceof Error ? error.message : 'Unknown settings error';
+        console.error(`[${MODULE_NAME}] Could not initialize Extension Settings: ${safeMessage}`);
     }
 
     console.info(`[${MODULE_NAME}] Custom API Secret bindings enabled.`);

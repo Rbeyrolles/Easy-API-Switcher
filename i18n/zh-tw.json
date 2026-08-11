@@ -20,6 +20,8 @@
     "SillyTavern is hiding API keys. Enable allowKeysExposure in config.yaml to copy the plaintext Key.": "SillyTavern 目前隱藏 API Key。若要複製明文 Key，請在 config.yaml 中啟用 allowKeysExposure。",
     "Enter a new Key, or leave blank to keep the current Secret": "輸入新的 Key，或留空以保留目前的 Secret",
     "Save connection": "儲存連線",
+    "Hide Test Message button": "隱藏測試按鈕",
+    "Hides SillyTavern's native Test Message button in API Connections. This does not affect API connections or chat.": "啟用後隱藏 SillyTavern API Connections 中原生的「Test Message」按鈕，不影響實際 API 連線和聊天功能。",
     "API Key (may be empty for a keyless endpoint)": "API Key（無密鑰端點可以留空）",
     "Create a keyless Secret?": "建立無密鑰 Secret？",
     "No API Key was entered. The new Secret will contain an empty value.": "未輸入 API Key。新的 Secret 將儲存空值。",

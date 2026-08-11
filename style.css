@@ -111,6 +111,16 @@
     font-weight: 600;
 }
 
+#test_api_button.easyswitch-test-message-hidden {
+    display: none !important;
+}
+
+.easyswitch-setting-description {
+    display: block;
+    margin-top: 0.35rem;
+    opacity: 0.75;
+}
+
 .easyswitch-manager[aria-busy="true"],
 .popup[aria-busy="true"] .easyswitch-form {
     cursor: progress;
