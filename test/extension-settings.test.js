@@ -7,27 +7,27 @@ import {
     getTemplateModuleName,
 } from '../extension-settings.js';
 
-test('Extension Settings stores only the hide-button boolean', () => {
+test('Extension Settings enables the hide-button preference by default', () => {
     const context = { extensionSettings: {} };
     const settings = getExtensionSettings(context);
 
-    assert.deepEqual(settings, { hideTestMessageButton: false });
+    assert.deepEqual(settings, { hideTestMessageButton: true });
     assert.deepEqual(context.extensionSettings, {
-        easyApiSwitcher: { hideTestMessageButton: false },
+        easyApiSwitcher: { hideTestMessageButton: true },
     });
 
-    settings.hideTestMessageButton = true;
-    assert.equal(getExtensionSettings(context).hideTestMessageButton, true);
+    settings.hideTestMessageButton = false;
+    assert.equal(getExtensionSettings(context).hideTestMessageButton, false);
 });
 
-test('invalid persisted setting values fail closed to the visible default', () => {
+test('invalid persisted setting values fall back to the enabled default', () => {
     const context = {
         extensionSettings: {
             easyApiSwitcher: { hideTestMessageButton: 'true' },
         },
     };
 
-    assert.deepEqual(getExtensionSettings(context), { hideTestMessageButton: false });
+    assert.deepEqual(getExtensionSettings(context), { hideTestMessageButton: true });
 });
 
 test('visibility helper toggles only the EasySwitch class on the native button', () => {

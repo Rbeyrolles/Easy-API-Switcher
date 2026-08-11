@@ -4,7 +4,7 @@
     "js": "index.js",
     "css": "style.css",
     "author": "SillyTavern EasySwitch contributors",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "homePage": "https://github.com/Rbeyrolles/Easy-API-Switcher",
     "auto_update": true,
     "minimum_client_version": "1.13.4",

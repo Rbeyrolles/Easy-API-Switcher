@@ -4,7 +4,7 @@ const HIDDEN_CLASS = 'easyswitch-test-message-hidden';
 const SETTINGS_ROOT_ID = 'easyswitch-settings';
 const CHECKBOX_ID = 'easyswitch-hide-test-message';
 const DEFAULT_SETTINGS = Object.freeze({
-    hideTestMessageButton: false,
+    hideTestMessageButton: true,
 });
 
 /**
@@ -28,7 +28,9 @@ export function getExtensionSettings(context) {
         }
     }
 
-    settings.hideTestMessageButton = settings.hideTestMessageButton === true;
+    if (typeof settings.hideTestMessageButton !== 'boolean') {
+        settings.hideTestMessageButton = DEFAULT_SETTINGS.hideTestMessageButton;
+    }
     return /** @type {{hideTestMessageButton: boolean}} */ (settings);
 }
 

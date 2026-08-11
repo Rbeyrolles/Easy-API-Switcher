@@ -132,7 +132,7 @@ Custom API Key
 
 进入 SillyTavern 的 **Extensions** 面板，展开 **Easy API Switcher**：
 
-- **隐藏测试按钮**：隐藏 API Connections 中原生的 **Test Message** 按钮。
+- **隐藏测试按钮**：默认开启，隐藏 API Connections 中原生的 **Test Message** 按钮。
 
 这个选项只改变按钮的可见性，不修改 API 配置、连接流程或聊天功能。
 
@@ -277,9 +277,9 @@ Then reload SillyTavern.
 ## Extension Settings
 
 Open SillyTavern's **Extensions** panel and expand **Easy API Switcher**.
-Enable **Hide Test Message button** to hide the native button in API
-Connections. This changes visibility only; API connections and chat behavior
-are unaffected.
+**Hide Test Message button** is enabled by default and hides the native button
+in API Connections. This changes visibility only; API connections and chat
+behavior are unaffected.
 
 ## Existing Secrets
 
