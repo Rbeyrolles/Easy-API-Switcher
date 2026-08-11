@@ -1,0 +1,145 @@
+.easyswitch-manager {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: min(34rem, 70vh);
+    text-align: left;
+}
+
+.easyswitch-manager-header,
+.easyswitch-title-block,
+.easyswitch-form,
+.easyswitch-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.easyswitch-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.easyswitch-title-block h3 {
+    margin: 0;
+}
+
+.easyswitch-key-name,
+.easyswitch-security-note,
+.easyswitch-legacy-label {
+    color: var(--SmartThemeBodyColor);
+    opacity: 0.75;
+    overflow-wrap: anywhere;
+}
+
+.easyswitch-hint {
+    margin: 0;
+}
+
+.easyswitch-secret-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.4rem;
+    overflow-y: auto;
+}
+
+.easyswitch-secret-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+}
+
+.easyswitch-secret-info {
+    min-width: 0;
+}
+
+.easyswitch-secret-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.easyswitch-endpoint,
+.easyswitch-unbound,
+.easyswitch-id-row code {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.easyswitch-unbound {
+    color: var(--warning-color, #e5a84b);
+}
+
+.easyswitch-active-badge {
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.78em;
+    white-space: nowrap;
+}
+
+.easyswitch-id-row {
+    display: flex;
+    gap: 0.35rem;
+    align-items: baseline;
+    font-size: 0.88em;
+}
+
+.easyswitch-actions {
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(2, auto);
+    gap: 0.35rem;
+}
+
+.easyswitch-action {
+    margin: 0;
+}
+
+.easyswitch-empty {
+    min-height: 8rem;
+}
+
+.easyswitch-form {
+    min-width: min(32rem, 75vw);
+}
+
+.easyswitch-field > span {
+    font-weight: 600;
+}
+
+.easyswitch-manager[aria-busy="true"],
+.popup[aria-busy="true"] .easyswitch-form {
+    cursor: progress;
+}
+
+@media (max-width: 600px) {
+    .easyswitch-manager {
+        min-height: 65vh;
+    }
+
+    .easyswitch-title-row,
+    .easyswitch-secret-item {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .easyswitch-actions {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .easyswitch-actions .menu_button {
+        justify-content: center;
+        min-height: 2.6rem;
+    }
+
+    .easyswitch-form {
+        min-width: 0;
+        width: 100%;
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "name": "sillytavern-easyswitch",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "node --test",
+        "check": "node --check index.js && node --check manager.js && node --check binding-service.js && node --check secret-client.js && node --check endpoint-store.js && node --check url-utils.js && node --check compatibility.js"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "license": "MIT"
+}
